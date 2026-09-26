@@ -253,14 +253,57 @@ bash scripts/stop_all.sh
 | 模型 ID | `qwen3-4b`（**必须和服务端 `GET /v1/models` 返回的完全一致**；服务通过 `--model_alias` 固定为该值，三系统通用） |
 | 超时时间（秒） | `300`（本地 CPU 推理约 8 tokens/s，超时太短会中断生成） |
 
-## 代理注意事项
+## 代理注意事项（开了 Clash/V2Ray 等代理时必读）
 
-本机若开了系统代理/Clash 等，可能劫持 localhost 请求导致 502。本项目已做双保险：
+**典型现象**：服务明明启动了，浏览器能打开，但在 TraeCode 里点「测试连接」报 `连接失败 (upstream_error)：上游服务返回错误 (502)`。
 
-1. 代码内内置 `NO_PROXY=localhost,127.0.0.1`，回环地址强制直连；
-2. 所有文档与默认配置统一使用 `localhost`。
+**原因**：代理软件把发往 `localhost:8081` 的请求也转发给了远程代理节点，节点访问不到你自己的电脑，于是返回 502。
+注意：项目自身代码已内置 `NO_PROXY=localhost,127.0.0.1`（所以后端调用本地模型不受影响），但 **TraeCode 等第三方应用走不走代理由它自己决定**，需要在代理软件或应用侧放行本地地址。
 
-若仍遇 502/连接拒绝，请检查代理软件的"绕过本地地址"规则。
+按从简单到彻底的顺序尝试：
+
+**方法 1：临时关闭系统代理（最快验证）**
+Clash Verge 托盘图标右键 → 关闭「系统代理」，再点测试连接；用完记得打开。能成功即确认是代理问题，再用方法 2/3 做长期配置。
+
+**方法 2：在 TraeCode 里设置不走代理（推荐，只影响该应用）**
+打开 TraeCode 设置，搜索 `proxy`（代理），把 HTTP 代理设置为 `off` / `direct`（不使用代理），或在代理输入框填：
+
+```
+direct
+```
+
+设置后重启 TraeCode 再测。
+
+**方法 3：给代理软件加本地直连规则（一劳永逸，所有应用生效）**
+在 Clash 配置的 `rules:` **最顶部**加入三条规则后重载配置：
+
+```yaml
+rules:
+  - DOMAIN,localhost,DIRECT
+  - IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
+  # ...下面是原有规则
+```
+
+Clash Verge 用户建议用「全局扩展配置 / Merge」添加（订阅更新不会丢失）：设置 → 配置文件 → 扩展配置/脚本。
+
+**方法 4：设置 NO_PROXY 环境变量后重启应用**
+
+```powershell
+# Windows（用户级环境变量，只影响读环境变量的应用）
+[Environment]::SetEnvironmentVariable('NO_PROXY','localhost,127.0.0.1','User')
+```
+
+设置后完全退出并重新打开 TraeCode。取消方法：`[Environment]::SetEnvironmentVariable('NO_PROXY',$null,'User')`。
+
+> macOS/Linux 在 `~/.zshrc` 或 `~/.bashrc` 加 `export NO_PROXY=localhost,127.0.0.1` 后 `source` 即可。
+
+**怎么自查是不是代理导致的？**
+
+```powershell
+curl.exe http://localhost:8081/v1/models                      # 正常应返回 JSON
+curl.exe -x http://127.0.0.1:7897 http://localhost:8081/v1/models   # 若 502，即代理劫持（7897 换成你的代理端口）
+```
 
 ## 停止服务
 
