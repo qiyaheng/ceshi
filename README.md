@@ -203,8 +203,8 @@ curl -X POST http://localhost:8080/v1/research/equity-report ^
 
 ```bash
 # 1. 下载代码（或在仓库页面点 Code → Download ZIP 解压）
-git clone https://github.com/<你的用户名>/<仓库名>.git
-cd <仓库名>
+git clone https://github.com/qiyaheng/ceshi.git
+cd ceshi
 
 # 2. 确认已装 Python 3.10+（没装就去 python.org，Windows 勾选 Add Python to PATH）
 
