@@ -1,4 +1,4 @@
-﻿﻿@echo off
+@echo off
 chcp 65001 >nul
 cd /d "%~dp0"
 title 金融研究员 Agent - 启动器

@@ -1,0 +1,10 @@
+# Windows 批处理必须为 CRLF，否则 cmd.exe 解析错乱
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+
+# Shell 脚本必须为 LF，否则在 macOS/Linux 上无法执行
+*.sh    text eol=lf
+
+# 统一换行符的文本文件
+*.py    text eol=lf
+*.md    text eol=lf

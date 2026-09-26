@@ -1,4 +1,4 @@
-﻿﻿@echo off
+@echo off
 chcp 65001 >nul
 title 金融研究员 Agent - 停止器
 
@@ -16,7 +16,7 @@ for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8080 :8081" ^| findstr "LIS
   set FOUND=1
 )
 
-timeout /t 2 /nobreak >nul
+ping 127.0.0.1 -n 3 >nul
 
 netstat -ano | findstr ":8080 :8081" | findstr "LISTENING" >nul
 if errorlevel 1 (
